@@ -36,9 +36,35 @@ app.post('/api/quotes', (req, res) => {
   if (!quote || !person) {
     return res.status(400).send('Both quote and person are required.');
   }
-  const newQuote = { quote, person };
+  // Find the max id in the current quotes array
+  const maxId = quotes.length > 0 ? Math.max(...quotes.map(q => q.id)) : 0;
+  const newQuote = { id: maxId + 1, quote, person };
   quotes.push(newQuote);
   res.status(201).json({ quote: newQuote });
+});
+
+// PUT /api/quotes/:id - update a quote by id
+app.put('/api/quotes/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const { quote, person } = req.query;
+  const quoteObj = quotes.find(q => q.id === id);
+  if (!quoteObj) {
+    return res.status(404).send('Quote not found.');
+  }
+  if (quote) quoteObj.quote = quote;
+  if (person) quoteObj.person = person;
+  res.json({ quote: quoteObj });
+});
+
+// DELETE /api/quotes/:id - delete a quote by id
+app.delete('/api/quotes/:id', (req, res) => {
+  const id = parseInt(req.params.id);
+  const index = quotes.findIndex(q => q.id === id);
+  if (index === -1) {
+    return res.status(404).send('Quote not found.');
+  }
+  const deleted = quotes.splice(index, 1)[0];
+  res.json({ quote: deleted });
 });
 
 app.listen(PORT, () => {
